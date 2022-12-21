@@ -84,6 +84,7 @@ class _HomePageState extends State<HomePage> {
                     }
                     setState(() {
                       _postcode = postcode;
+                      _postcodeTextController.text = postcode;
                     });
 
                     return null;
