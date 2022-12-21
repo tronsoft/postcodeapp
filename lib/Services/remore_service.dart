@@ -10,18 +10,15 @@ import 'dart:core';
 class RemoteServiceHouse{
   var client = http.Client();
 
-  var state = HomePage.myState();
+  // var state = HomePage.myState();
 
-
-
-  Future<dynamic> getHouseNumbers() async{
+  Future<dynamic> getHouseNumbers(postcode) async {
     //postcode als verplichte var bij aanroepen functie
     //json object maken
     var data = {'jsonrpc': '2.0', 'id': 1, 'method': "get_housenrs", 'params': {"zipcode": "$postcode" }};
     String username = 'j.deron@mkbvoice.nl';
     String password = 'A7ttLTJaYXiPFLR';
-    String basicAuth =
-        'Basic ' + base64.encode(utf8.encode('$username:$password'));
+    String basicAuth = 'Basic ' + base64.encode(utf8.encode('$username:$password'));
     String json = jsonEncode(data);
 
     var uri = Uri.parse('https://api.nextpertise.nl/postcodes/v1');

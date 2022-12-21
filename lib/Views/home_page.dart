@@ -3,46 +3,50 @@ import 'package:postcodeapp/Services/remore_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
-  static _HomePageState myState(BuildContext context) => _myState;
-  static _HomePageState _myState;
 
   @override
   State<HomePage> createState() => _HomePageState();
-  Set<_HomePageState> createState2() => {
-    _myState = new _HomePageState();
-    return _myState;
-  };
 }
 
 class _HomePageState extends State<HomePage> {
-
   final _formKey = GlobalKey<FormState>();
-  RegExp postcodeCheck = RegExp(r'^[0-9]{4}\s?[A-Z|a-z]{2}');
-  var txt = TextEditingController();
-  var postcode;
+  final postcodeCheck = RegExp(r'^[0-9]{4}\s?[A-Z|a-z]{2}');
+  final _postcodeTextController = TextEditingController();
+  final _remoteServiceHouse = RemoteServiceHouse();
+  String _postcode = "";
 
   postcodeData() {
-     return postcode;
+     return _postcode;
   }
 
-  List<dynamic>? housenumbers;
-  var isLoaded = false;
+  List<dynamic>? _houseNumbers;
+  var _isLoaded = false;
 
   @override
   void initState() {
     super.initState();
-
-    getData();
   }
+
+  @override
+  void dispose() {
+    _postcodeTextController.dispose();
+    super.dispose();
+  }
+
   getData() async {
-    housenumbers = await RemoteServiceHouse().getHouseNumbers();
-    if (housenumbers != null) {
+    setState(() {
+      _isLoaded = true;
+    });
+    String pc = _postcodeTextController.text;
+    if (pc == "") return;
+
+    _houseNumbers = await _remoteServiceHouse.getHouseNumbers(pc);
+    if (_houseNumbers != null) {
       setState(() {
-        isLoaded = true;
+        _isLoaded = false;
       });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +59,15 @@ class _HomePageState extends State<HomePage> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextFormField(
-                  controller: txt,
+                  controller: _postcodeTextController,
                   textCapitalization: TextCapitalization.characters,
                   onFieldSubmitted: (value) {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
                     }
+                  },
+                  onSaved: (value) {
+                    getData();
                   },
                   decoration: const InputDecoration(
                       labelText: 'Postcode'
@@ -69,16 +76,17 @@ class _HomePageState extends State<HomePage> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter some text';
                     }
-                    postcode = value.toUpperCase();
+
+                    var postcode = value.toUpperCase();
                     bool postcodeChecked = postcodeCheck.hasMatch(postcode);
                     if (!postcodeChecked){
                       return 'Postcode format klopt niet';
                     }
                     setState(() {
-                      txt.text = value.toUpperCase();
+                      _postcode = postcode;
                     });
 
-                    return '${postcodeChecked.toString()} \n$postcode \n$housenumbers';
+                    return null;
                   },
                 ),
               ),
@@ -91,10 +99,8 @@ class _HomePageState extends State<HomePage> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Processing Data')),
                       );
-                      
+                      _formKey.currentState!.save();
                     }
-                      
-
                   },
                   child: const Text('Submit'),
                 ),
